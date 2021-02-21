@@ -15,7 +15,7 @@ from authentication.models import PhoneNumber
 from authentication.models import OTPCode
 from twilio.rest import Client
 account_sid = 'AC3115cdf0d3c573e8b23d650a90e1026d'
-auth_token = '3807478a3d62f0ed6b7883a7393869d7'
+auth_token = '5ad18ba8e64fc837aa304c8befe30d6f'
 # Create your views here.
 
 # view all users
@@ -51,11 +51,24 @@ def random_with_N_digits(n):
     return randint(range_start, range_end)
 
 
+loginUsername = ''
+
+
 @csrf_exempt
 def loginUser(request):
     if(request.method == 'POST'):
+        print("###############################")
+        print(request.body)
+        print("###############################")
         steam = io.BytesIO(request.body)
+        print("###############################")
+        print(steam)
+        print("###############################")
+
         parse_user = JSONParser().parse(steam)
+        print("###############################")
+        print(parse_user)
+        print("###############################")
         user = authenticate(
             username=parse_user['username'],
             password=parse_user['password'])
@@ -81,6 +94,7 @@ def loginUser(request):
                     otpcode = OTPCode.objects.get(user=user)
                     otpcode.otpcode = sms
                     otpcode.save()
+                    loginUsername = user
             except OTPCode.DoesNotExist:
                 otpcode = OTPCode.objects.create(user=user, otpcode=sms)
                 otpcode.save()
@@ -89,11 +103,31 @@ def loginUser(request):
 
             return HttpResponse(request.body, content_type='application/json')
         else:
-            msg = {'msg': 'Invalid credentials'}
+            msg = {'error': 'Invalid credentials'}
             print(msg)
             json_msg = JSONRenderer().render(data=msg)
             return HttpResponse(json_msg, content_type='application/json')
 
 
+@csrf_exempt
 def verifyOTPCode(request):
-    pass
+    if(request.method == 'POST'):
+        print(request.body)
+        stream = io.BytesIO(request.body)
+        parse_data = JSONParser().parse(stream)
+        print(parse_data)
+        user = User.objects.get(username=parse_data.get('username'))
+        print(user)
+        otpcode = OTPCode.objects.get(user=user)
+        print(otpcode)
+        print(otpcode.otpcode)
+        if(otpcode.otpcode == parse_data.get('otp')):
+            msg = {'msg': 'U R Authorized TO ACCESS'}
+            print(msg)
+            json_msg = JSONRenderer().render(data=msg)
+            return HttpResponse(json_msg, content_type='application/json')
+
+        # otpcode = OTPCode.objects.get(user=loginUsername)
+        msg = {'error': "INvALID otpcode"}
+        json_msg = JSONRenderer().render(data=msg)
+        return HttpResponse(json_msg, content_type='application/json', status=400)
