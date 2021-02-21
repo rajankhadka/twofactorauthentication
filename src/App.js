@@ -1,23 +1,28 @@
 import logo from './logo.svg';
-import './App.css';
+
+import { useState,useEffect } from "react";
+import RegisterPage from './pages/RegisterPage/RegisterPage';
+import classes from './App.module.css'
+import LoginPage from './pages/LoginPage/LoginPage';
+
 
 function App() {
+  console.log(window.innerHeight)
+
+  const [register,setRegister] = useState(false)
+
+  const registerHandler = () =>{
+    setRegister(true)
+  }
+
+  const loginHandler = () =>{
+    setRegister(false)
+  }
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={classes.App}
+      style={{width:window.innerWidth,height:window.innerHeight}}>
+      <RegisterPage register={register} loginHandler={loginHandler} />
+      <LoginPage registerHandler = {registerHandler} login = {register}/>
     </div>
   );
 }
